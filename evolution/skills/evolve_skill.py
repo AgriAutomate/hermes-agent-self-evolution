@@ -163,7 +163,21 @@ def evolve(
     console.print(f"  Eval model: {eval_model}")
 
     # Configure DSPy
-    lm = dspy.LM(eval_model)
+    # The AI Gateway enforces a 5 requests/minute team limit per model and does
+    # not retry on 429; backoff keeps the loop alive through the bootstrap,
+    # proposal and evaluation phases, which burst far past 5 calls/minute.
+    # Reporting headers attribute every request to this skill and run, so the
+    # Custom Reporting API can break spend down per skill.
+    import time as _time
+
+    _run_id = _time.strftime("%Y%m%d-%H%M%S")
+    from evolution.reporting import reporting_headers
+
+    lm = dspy.LM(
+        eval_model,
+        num_retries=8,
+        default_headers=reporting_headers(skill_name, _run_id),
+    )
     dspy.configure(lm=lm)
 
     # Create the baseline skill module
@@ -190,6 +204,7 @@ def evolve(
             baseline_module,
             trainset=trainset,
             valset=valset,
+            num_threads=1,
         )
     except Exception as e:
         # Fall back to MIPROv2 if GEPA isn't available in this DSPy version
@@ -199,6 +214,7 @@ def evolve(
         optimizer = dspy.MIPROv2(
             metric=skill_fitness_metric,
             auto="light",
+            num_threads=1,
         )
         optimized_module = optimizer.compile(
             baseline_module,
@@ -209,8 +225,9 @@ def evolve(
     console.print(f"\n  Optimization completed in {elapsed:.1f}s")
 
     # ── 6. Extract evolved skill text ───────────────────────────────────
-    # The optimized module's instructions contain the evolved skill text
-    evolved_body = optimized_module.skill_text
+    # DSPy optimizers mutate the signature's instructions, not instance attrs,
+    # so the evolved text must be read back from the predictor's signature.
+    evolved_body = optimized_module.get_evolved_text()
     evolved_full = reassemble_skill(skill["frontmatter"], evolved_body)
 
     # ── 7. Validate evolved skill ───────────────────────────────────────
