@@ -15,6 +15,7 @@ from evolution.core.config import EvolutionConfig
 @dataclass
 class ConstraintResult:
     """Result of constraint validation."""
+
     passed: bool
     constraint_name: str
     message: str
@@ -36,12 +37,47 @@ class ConstraintValidator:
         """Run all applicable constraints. Returns list of results."""
         results = []
 
+        # 0. Frozen invariants (Tier 3 prerequisite): the AA-Core frozen
+        # identifiers, canonical field names and governance rails are IMMUTABLE
+        # inputs. A candidate that removes a frozen name, reintroduces a retired
+        # name or deletes a rail is rejected before any other gate runs.
+        if baseline_text:
+            from evolution.core.frozen_invariants import check as check_frozen
+
+            v = check_frozen(baseline_text, artifact_text)
+            findings = []
+            if v["frozen_missing"]:
+                findings.append(
+                    f"removed frozen identifiers: {', '.join(v['frozen_missing'])}"
+                )
+            if v["retired_introduced"]:
+                findings.append(
+                    f"reintroduced retired names: {', '.join(v['retired_introduced'])}"
+                )
+            if v["rails_missing"]:
+                findings.append(
+                    f"deleted governance rails: {', '.join(v['rails_missing'])}"
+                )
+            results.append(
+                ConstraintResult(
+                    constraint_name="frozen_invariants",
+                    passed=v["passed"],
+                    message=(
+                        "frozen identifiers, canonical names and rails intact"
+                        if v["passed"]
+                        else "; ".join(findings)
+                    ),
+                )
+            )
+
         # 1. Size limits
         results.append(self._check_size(artifact_text, artifact_type))
 
         # 2. Growth limit (if baseline provided)
         if baseline_text:
-            results.append(self._check_growth(artifact_text, baseline_text, artifact_type))
+            results.append(
+                self._check_growth(artifact_text, baseline_text, artifact_type)
+            )
 
         # 3. Non-empty
         results.append(self._check_non_empty(artifact_text))
@@ -68,11 +104,15 @@ class ConstraintValidator:
                     passed=True,
                     constraint_name="test_suite",
                     message="All tests passed",
-                    details=result.stdout.strip().split("\n")[-1] if result.stdout else "",
+                    details=result.stdout.strip().split("\n")[-1]
+                    if result.stdout
+                    else "",
                 )
             else:
                 # Extract failure summary
-                last_lines = result.stdout.strip().split("\n")[-5:] if result.stdout else []
+                last_lines = (
+                    result.stdout.strip().split("\n")[-5:] if result.stdout else []
+                )
                 return ConstraintResult(
                     passed=False,
                     constraint_name="test_suite",
@@ -116,7 +156,9 @@ class ConstraintValidator:
                 message=f"Size exceeded: {size}/{limit} chars ({size - limit} over)",
             )
 
-    def _check_growth(self, text: str, baseline: str, artifact_type: str) -> ConstraintResult:
+    def _check_growth(
+        self, text: str, baseline: str, artifact_type: str
+    ) -> ConstraintResult:
         growth = (len(text) - len(baseline)) / max(1, len(baseline))
         max_growth = self.config.max_prompt_growth
 
