@@ -20,6 +20,13 @@ class BudgetExhausted(RuntimeError):
     pass
 
 
+# Cloudflare fronts https://opencode.ai and rejects urllib's default
+# "Python-urllib/3.13" signature with 403 error 1010 even for an authorized,
+# billed-free key. An honest project identifier is accepted; no browser
+# spoofing is needed or used.
+USER_AGENT = "hermes-agent-self-evolution/0.1 (+model-selection; request-ledger)"
+
+
 def write_json(path: Path, value: object) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     with path.open("x", encoding="utf-8", newline="\n") as handle:
@@ -75,6 +82,7 @@ class RequestLedger:
             headers={
                 "Content-Type": "application/json",
                 "Authorization": f"Bearer {api_key}",
+                "User-Agent": USER_AGENT,
             },
         )
         status = None
