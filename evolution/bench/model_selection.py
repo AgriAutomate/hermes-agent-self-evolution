@@ -776,6 +776,9 @@ def probe(ledger: RequestLedger, candidates: list[dict]) -> list[dict]:
 
     Keys are resolved per candidate from its provider, so an unset key for one
     provider is a recorded zero for those candidates, not a crash for all.
+    Progress is printed per candidate: this run can sit minutes inside a single
+    slow call, and an operator staring at a silent terminal must still be able
+    to tell "working" from "wedged".
     """
     rows = []
     for candidate in candidates:
@@ -792,6 +795,7 @@ def probe(ledger: RequestLedger, candidates: list[dict]) -> list[dict]:
                 }
             )
             rows.append(row)
+            print(f"  probe {candidate['model']}: no key ({cause})", flush=True)
             continue
         result = dispatch(
             ledger,
@@ -805,6 +809,12 @@ def probe(ledger: RequestLedger, candidates: list[dict]) -> list[dict]:
         row.update({k: v for k, v in result.items() if k != "answer"})
         row["probe_text"] = result.get("answer", "")[:40]
         rows.append(row)
+        print(
+            f"  probe {candidate['model']}: ok={result.get('ok')} "
+            f"http={result.get('http')} attempts={result.get('attempts')} "
+            f"lat={result.get('latency_s')}s",
+            flush=True,
+        )
     return rows
 
 
@@ -845,6 +855,14 @@ def screen(
             result["score"] = task["grade"](answer) if result.get("ok") else 0.0
             result["answer"] = answer
             rows.append(result)
+            print(
+                f"  screen {candidate['model']} {task['name']}: "
+                f"score={result['score']} ok={result.get('ok')} "
+                f"trunc={result['truncated']} "
+                f"reason_tok={result.get('reasoning_tokens')} "
+                f"lat={result['latency_s']}s",
+                flush=True,
+            )
     return rows
 
 
@@ -875,6 +893,14 @@ def summarise(rows: list[dict]) -> list[dict]:
 
 
 def main() -> int:
+    # Redirected stdout is block-buffered by default, so a healthy multi-minute
+    # run produced a zero-byte output file and looked like it had never
+    # started. Line buffering makes progress visible the moment it happens.
+    try:
+        sys.stdout.reconfigure(line_buffering=True)
+    except (AttributeError, ValueError):  # pragma: no cover - exotic streams
+        pass
+
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument("--probe", action="store_true", help="stage 1 only")
     parser.add_argument("--run", action="store_true", help="stage 1 + stage 2")
