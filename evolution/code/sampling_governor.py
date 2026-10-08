@@ -254,6 +254,106 @@ def apply_verdict(
 GovernorJudge = Callable[[dict[str, Any]], PostureVerdict]
 
 
+# ── escalation: the hedged-judgment path ──────────────────────────────────
+# The fixed dictionary coerces: below the confidence floor a posture change
+# silently becomes `hold`, and a contradiction between the verdict and the
+# observed trend is applied verbatim. Live Jev does both (the 2026-10-09 live
+# validation: `steady_improvement -> hold @0.70` on a monotonic 0.60->0.74
+# curve, and `converged -> explore @0.88` on a flat-at-peak population with
+# novelty dead). Instead of quietly applying either, the governor hands the
+# case to a second opinion: `needs_escalation` runs BEFORE `apply_verdict`,
+# leaves the posture unchanged, and the driver spends the extra analysis.
+# Threshold is DECLARED PROVISIONAL like the floors above.
+
+ESCALATION_TREND_EPSILON = 1e-9
+# Noise band for "climbing": a +0.01 wobble inside a plateau band (the plateau
+# fixture: 0.71,0.72,0.72,0.71,0.72) is not improvement. A monotonic run moves
+# in larger steps (steady fixture: 0.60->0.74 over the window). PROVISIONAL,
+# like the confidence floors — calibrated against real runs is future work.
+ESCALATION_CLIMB_MARGIN = 0.02
+
+
+def analyze_trend(state: dict[str, Any]) -> dict[str, Any]:
+    """Deterministic trend facts from the OBSERVED state. Code owns this
+    arithmetic — it is never asked of the model."""
+    ev = (state or {}).get("evolution", {})
+    try:
+        improvement = float(ev.get("improvement_over_window") or 0.0)
+    except (TypeError, ValueError):
+        improvement = 0.0
+    try:
+        plateau = int(ev.get("plateau_iterations") or 0)
+    except (TypeError, ValueError):
+        plateau = 0
+    children = [int(c) for c in (ev.get("distinct_children_per_iteration") or [])]
+    return {
+        "climbing": improvement > ESCALATION_CLIMB_MARGIN,
+        "flat": not (improvement > ESCALATION_CLIMB_MARGIN),
+        "plateaued": plateau >= 3,
+        "novelty_dead": bool(children) and all(c <= 1 for c in children),
+    }
+
+
+def needs_escalation(
+    verdict: PostureVerdict, state: dict[str, Any]
+) -> tuple[bool, str]:
+    """Should this judgment be handed to a stronger model instead of mapped?
+
+    Returns (escalate, reason). Pure and deterministic — the shadow test can
+    stub the verdict; live receipts record the reason. The current posture is
+    never mutated either way.
+    """
+    # Accept both shapes: the live path returns a dict (ask_jev_choice), the
+    # shadow test and run_segment pass PostureVerdict objects.
+    raw_verdict = (
+        verdict.get("verdict")
+        if isinstance(verdict, dict)
+        else getattr(verdict, "verdict", None)
+    )
+    raw_confidence = (
+        verdict.get("confidence")
+        if isinstance(verdict, dict)
+        else getattr(verdict, "confidence", None)
+    )
+    v = (raw_verdict or "").strip().lower()
+    try:
+        confidence = float(raw_confidence)
+    except (TypeError, ValueError):
+        return True, "unreadable-confidence"
+    if (
+        isinstance(raw_confidence, bool)
+        or not math.isfinite(confidence)
+        or not 0 <= confidence <= 1
+    ):
+        return True, "invalid-confidence"
+    if v not in VALID_POSTURES:
+        return True, "unknown-verdict"
+    # 1. Below the posture-change floor the mapping would silently hold;
+    #    the case is genuinely under-determined, not conservative-by-design.
+    if confidence <= POSTURE_CHANGE_CONFIDENCE:
+        return True, "below-confidence-floor"
+    trend = analyze_trend(state)
+    # 2. The verdict contradicts the observed trend.
+    if v == "exploit" and not trend["climbing"]:
+        return True, "exploit-without-improvement"
+    if v == "explore" and trend["climbing"]:
+        return True, "explore-while-improving"
+    if (
+        v == "explore"
+        and trend["flat"]
+        and trend["plateaued"]
+        and trend["novelty_dead"]
+    ):
+        # Flat at peak with novelty exhausted is a ceiling to stop at, not a
+        # local optimum to escape — the very verdict observed live on 2026-10-09.
+        return True, "explore-on-ceiling"
+    if v == "hold" and trend["climbing"] and not trend["plateaued"]:
+        # Holding is defensible in general ("keep what works"); on a clean
+        # monotonic climb it is the hedge the live run showed.
+        return True, "hold-on-clean-improvement"
+    return False, ""
+
+
 def run_segment(
     results: list[dict[str, Any]],
     goal: str,

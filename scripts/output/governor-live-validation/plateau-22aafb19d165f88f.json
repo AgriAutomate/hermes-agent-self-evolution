@@ -1,0 +1,17 @@
+{
+  "receipt_id": "plateau-22aafb19d165f88f",
+  "fixture": "plateau",
+  "state_hash": "22aafb19d165f88f",
+  "verdict": "explore",
+  "confidence": 0.96,
+  "escalated": false,
+  "escalation_reason": "",
+  "acceptable": [
+    "explore",
+    "hold",
+    "stop"
+  ],
+  "matches": true,
+  "budget_line": "founder approval: keep advancing (2026-10-08)",
+  "model": "jev-latest"
+}

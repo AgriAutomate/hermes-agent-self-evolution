@@ -1,0 +1,17 @@
+{
+  "receipt_id": "converged-31a8b6bc8755c977",
+  "fixture": "converged",
+  "state_hash": "31a8b6bc8755c977",
+  "verdict": "explore",
+  "confidence": 0.86,
+  "escalated": true,
+  "escalation_reason": "explore-on-ceiling",
+  "acceptable": [
+    "stop",
+    "hold",
+    "explore"
+  ],
+  "matches": true,
+  "budget_line": "founder approval: keep advancing (2026-10-08)",
+  "model": "jev-latest"
+}

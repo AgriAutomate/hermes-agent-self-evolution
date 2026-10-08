@@ -1,0 +1,16 @@
+{
+  "receipt_id": "steady_improvement-8cb0d611b79d1411",
+  "fixture": "steady_improvement",
+  "state_hash": "8cb0d611b79d1411",
+  "verdict": "hold",
+  "confidence": 0.73,
+  "escalated": true,
+  "escalation_reason": "hold-on-clean-improvement",
+  "acceptable": [
+    "exploit",
+    "hold"
+  ],
+  "matches": true,
+  "budget_line": "founder approval: keep advancing (2026-10-08)",
+  "model": "jev-latest"
+}
