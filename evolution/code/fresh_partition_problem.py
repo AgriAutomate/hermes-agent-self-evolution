@@ -20,8 +20,9 @@ here — the mutator cannot game it). Gates: the repo's geometry tests
 failure is a failure case and makes the organism not viable. The frozen
 signatures are checked by the evaluator, never trusted to the mutator.
 
-The mutator calls the LLM through the OpenCode Zen endpoint (kimi-k3) — one
-mutation request per child, receipted by the evolver's learning log. Budget
+The mutator calls the LLM through the OpenCode Zen endpoint (space-bunny-free,
+per the measured selection) - one mutation request per child, receipted by the
+evolver's learning log. Budget
 line: the founder's "keep advancing" (2026-10-08); the evolver run records
 its own ledger row.
 """
@@ -431,10 +432,19 @@ block of your response."""
 
 
 class ZenMutator(Mutator):
-    """The LLM mutator through the OpenCode Zen endpoint (kimi-k3). One
+    """The LLM mutator through the OpenCode Zen endpoint (space-bunny-free). One
     mutation request per child; the evolver's learning log records it."""
 
-    def __init__(self, api_key: str, model: str = "kimi-k3", ledger=None):
+    def __init__(self, api_key: str, model: str = "space-bunny-free", ledger=None):
+        # Model per the measured selection (reports/MODEL-SELECTION-2026-10-09.md,
+        # run5 tiebreak): space-bunny-free scored 4/4 on bugfix/review/extract/
+        # bugfix2 with zero failures, truncations and retries, best mean latency
+        # (39.9 s), and is the ONE free catalogue model that accepts direct API
+        # calls (the other ten raise FreeTierError on the API route).
+        # The previous default kimi-k3 was eliminated with receipts in run4:
+        # timeout x3 (90.3 s). Measured fallbacks, if a caller needs them:
+        # openai/gpt-oss-20b (same 4/4, 67.0 s), then meta/muse-glimmer-30b
+        # (same 4/4, 112.5 s).
         super().__init__()
         self.api_key = api_key
         self.model = model
