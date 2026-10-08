@@ -33,6 +33,7 @@ def _make_skill_repo(tmp_path) -> Path:
 
 # ── resolver helper ────────────────────────────────────────────────────────
 
+
 def test_resolve_honors_explicit_path_without_default(tmp_path, monkeypatch):
     from evolution.core.config import resolve_hermes_agent_path
 
@@ -47,7 +48,11 @@ def test_resolve_expands_user_home(monkeypatch):
     from evolution.core.config import resolve_hermes_agent_path
 
     monkeypatch.setenv("HOME", "/home/example")
-    assert resolve_hermes_agent_path("~/code/hermes-agent") == Path("/home/example/code/hermes-agent")
+    # expanduser uses USERPROFILE on Windows, HOME on Unix.
+    monkeypatch.setenv("USERPROFILE", "/home/example")
+    assert resolve_hermes_agent_path("~/code/hermes-agent") == Path(
+        "/home/example/code/hermes-agent"
+    )
 
 
 def test_resolve_falls_back_to_env_var_when_no_override(tmp_path, monkeypatch):
@@ -60,6 +65,7 @@ def test_resolve_falls_back_to_env_var_when_no_override(tmp_path, monkeypatch):
 
 
 # ── config dataclass (root cause) ──────────────────────────────────────────
+
 
 def test_config_constructs_without_repo(tmp_path, monkeypatch):
     """A bare EvolutionConfig() must not raise when no repo is present."""
@@ -81,6 +87,7 @@ def test_config_preserves_explicit_path(tmp_path):
 
 
 # ── CLI end to end ─────────────────────────────────────────────────────────
+
 
 def test_cli_dry_run_honors_explicit_repo(tmp_path, monkeypatch):
     """`evolve_skill --hermes-repo <path> --dry-run` must work when the default
