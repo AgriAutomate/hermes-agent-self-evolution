@@ -1,0 +1,13 @@
+{
+  "receipt_id": "hedged_ceiling-053282c3441d8668",
+  "fixture": "hedged_ceiling",
+  "state_hash": "053282c3441d8668",
+  "verdict": "explore",
+  "confidence": 0.85,
+  "escalated": true,
+  "escalation_reason": "explore-on-ceiling",
+  "acceptable": "--escalated--",
+  "matches": true,
+  "budget_line": "founder approval: keep advancing (2026-10-08)",
+  "model": "jev-latest"
+}
