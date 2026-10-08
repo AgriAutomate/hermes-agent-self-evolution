@@ -21,6 +21,7 @@ from evolution.code.fresh_partition_problem import (
     FROZEN_SIGNATURES,
     GATE_FILES,
     TARGET_FILE,
+    PartitionFailure,
     ZenMutator,
     make_problem,
 )
@@ -122,21 +123,112 @@ class TestWindowsEncodingHazard:
 
 
 class TestMutator:
-    def test_mutator_refuses_signature_changing_content(self):
-        mutator = ZenMutator("stub-key")
-        # A mutated file missing a frozen export is refused — the mutator
-        # returns no organisms. The refusal is enforced by the EVALUATOR too;
-        # this asserts the mutator's own pre-check.
+    def test_overload_is_part_of_the_frozen_api(self):
+        initial, evaluator, _ = make_problem("stub")
+        source = initial.file_contents[TARGET_FILE]
+        changed = source.replace(
+            "export function partitionEven(",
+            "export function partitionEven(ring: Ring, count: 1): Ring[];\nexport function partitionEven(",
+            1,
+        )
+        assert changed != source
+        result = evaluator.evaluate(
+            initial.model_copy(update={"file_contents": {TARGET_FILE: changed}})
+        )
+        assert not result.is_viable
+        assert result.trainable_failure_cases[0].data_point_id == "frozen_signatures"
+
+    def test_child_does_not_inherit_prior_generation_failures(self):
         initial, _, _ = make_problem("stub")
-        broken = initial.model_copy(
+        parent = initial.model_copy(
             update={
-                "file_contents": {**initial.file_contents, TARGET_FILE: "// no exports"}
+                "from_failure_cases": [
+                    PartitionFailure(data_point_id="old", actual="old generation")
+                ]
             }
         )
-        # The mutator's LLM call would fail with a stub key; the pre-check on
-        # the content is what this test isolates. Call the module-level logic
-        # directly instead of the network path.
-        assert "export function partitionFan" not in broken.file_contents[TARGET_FILE]
+
+        class Reply:
+            def post_json(self, *args, **kwargs):
+                return {
+                    "model": "offline-control",
+                    "choices": [
+                        {
+                            "message": {
+                                "content": "```typescript\n"
+                                + parent.file_contents[TARGET_FILE]
+                                + "\n// offline change\n```"
+                            }
+                        }
+                    ],
+                }
+
+        child = ZenMutator("stub", ledger=Reply()).mutate(
+            parent, [PartitionFailure(data_point_id="new", actual="new generation")]
+        )[0]
+        assert child.from_failure_cases is None
+        assert child.from_learning_log_entries is None
+        assert child.additional_parents == []
+
+    def test_mutator_refuses_signature_changing_content(self):
+        initial, _, _ = make_problem("stub")
+
+        class Reply:
+            def post_json(self, *args, **kwargs):
+                return {
+                    "model": "offline-control",
+                    "choices": [
+                        {"message": {"content": "```typescript\n// no exports\n```"}}
+                    ],
+                }
+
+        mutator = ZenMutator("stub-key", ledger=Reply())
+        failure = PartitionFailure(
+            data_point_id="control", actual="reproduced export deletion"
+        )
+        assert mutator.mutate(initial, [failure]) == []
+
+    def test_mutation_keeps_diagnostics_and_allocates_a_fresh_id(self):
+        initial, _, _ = make_problem("stub")
+        captured = []
+
+        class Reply:
+            def post_json(self, endpoint, payload, *args, **kwargs):
+                captured.append(payload)
+                code = (
+                    initial.file_contents[TARGET_FILE]
+                    + "\n// offline mutation control\n"
+                )
+                return {
+                    "model": "offline-control",
+                    "choices": [
+                        {"message": {"content": f"```typescript\n{code}\n```"}}
+                    ],
+                }
+
+        mutator = ZenMutator("stub-key", ledger=Reply())
+        children = mutator.mutate(
+            initial,
+            [
+                PartitionFailure(
+                    data_point_id="control", actual="diagnostic to preserve"
+                )
+            ],
+        )
+        assert children[0].id != initial.id
+        assert children[0].parent is initial
+        assert "diagnostic to preserve" in captured[0]["messages"][1]["content"]
+
+    def test_signature_change_is_rejected_even_with_all_export_names(self):
+        initial, evaluator, _ = make_problem("stub")
+        source = initial.file_contents[TARGET_FILE]
+        changed = source.replace("count: number", "count: string")
+        assert changed != source
+        candidate = initial.model_copy(update={"file_contents": {TARGET_FILE: changed}})
+        result = evaluator.evaluate(candidate)
+        assert not result.is_viable and result.score == 0
+        assert result.trainable_failure_cases[0].data_point_id == "frozen_signatures"
+        assert "signatures_match" in result.trainable_failure_cases[0].actual
 
     def test_edge_case_fixture_is_fixed_and_contract_shaped(self):
         # The fixture asserts the module's CONTRACT (tiling + shares), not a

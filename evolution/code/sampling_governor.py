@@ -35,6 +35,8 @@ it.
 from __future__ import annotations
 
 import json
+import math
+from types import SimpleNamespace
 from typing import Any, Callable, Protocol
 
 # The README's documented ranges — the mapping is bounded to these.
@@ -57,7 +59,7 @@ class PostureVerdict(Protocol):
 # The fixed dictionary — posture → the next segment's flags. There is no code
 # path that can set a value outside the documented ranges: every entry is a
 # literal within SHARPNESS_RANGE / the percentile syntax.
-FLAG_PRESETS: dict[str, dict[str, Any]] = {
+FLAG_PRESETS: dict[str, dict[str, Any] | None] = {
     "exploit": {"sharpness": 20, "midpoint_score": "p90"},
     "explore": {"sharpness": 5, "midpoint_score": "p50"},
     "hold": None,  # keep the current posture unchanged
@@ -81,6 +83,8 @@ def build_state(
     """
     if not results:
         raise ValueError("no results rows to build state from")
+    if isinstance(window, bool) or not isinstance(window, int) or window < 1:
+        raise ValueError("window must be a positive integer")
     ordered = sorted(results, key=lambda r: int(r.get("iteration", 0)))
     recent = ordered[-window:]
     best_scores = [float(r["best_score"]) for r in recent]
@@ -93,11 +97,11 @@ def build_state(
     ]
     peak = max(best_scores)
     improvement = round(best_scores[-1] - best_scores[0], 6)
-    plateau = (
-        sum(1 for s in best_scores if s == peak)
-        if len(best_scores) > 1
-        else len(best_scores)
-    )
+    plateau = 0
+    for score in reversed(best_scores):
+        if score != best_scores[-1]:
+            break
+        plateau += 1
     learning = [
         str(r.get("observed_outcome") or r.get("attempted_change") or "")
         for r in recent
@@ -150,31 +154,56 @@ def ask_jev_choice(
     api_key: str,
     endpoint: str = "https://api.typesafe.ai/v1/systemone",
     model: str = "jev-latest",
+    ledger=None,
 ) -> dict[str, Any]:
     """The LIVE Jev path. NOT exercised by the shadow test — the budget rail
     gates this (one ledger row per request, the driver's job)."""
     import urllib.request
 
-    body = json.dumps(
-        {
-            "state": JUDGE_PROMPT_TEMPLATE.format(state=state),
-            "model": model,
-            "questions": POSTURE_QUESTION,
-        }
-    ).encode("utf-8")
-    req = urllib.request.Request(
-        endpoint,
-        data=body,
-        headers={
-            "Content-Type": "application/json",
-            "Authorization": f"Bearer {api_key}",
-        },
-        method="POST",
-    )
-    with urllib.request.urlopen(req, timeout=30) as resp:  # noqa: S310 - the fixed endpoint
-        answer = json.loads(resp.read().decode("utf-8"))
+    payload = {"state": state, "model": model, "questions": POSTURE_QUESTION}
+    if ledger is not None:
+        answer = ledger.post_json(endpoint, payload, api_key)
+    else:
+        req = urllib.request.Request(
+            endpoint,
+            data=json.dumps(payload, allow_nan=False).encode("utf-8"),
+            headers={
+                "Content-Type": "application/json",
+                "Authorization": f"Bearer {api_key}",
+            },
+            method="POST",
+        )
+        with urllib.request.urlopen(req, timeout=30) as resp:
+            answer = json.loads(resp.read().decode("utf-8"))
     entry = answer["answers"]["posture"]
-    return {"verdict": entry["choice"], "confidence": entry["confidence"]}
+    probabilities = entry["probabilities"]
+    confidence = entry["confidence"]
+    if entry.get("type") != "choice" or entry["choice"] not in VALID_POSTURES:
+        raise ValueError("invalid posture choice")
+    if not isinstance(answer.get("model"), str) or not answer["model"]:
+        raise ValueError("returned model is missing")
+    if not isinstance(probabilities, dict) or set(probabilities) != set(VALID_POSTURES):
+        raise ValueError("incomplete posture distribution")
+    values = [confidence, *probabilities.values()]
+    if any(
+        isinstance(v, bool)
+        or not isinstance(v, (int, float))
+        or not math.isfinite(v)
+        or not 0 <= v <= 1
+        for v in values
+    ):
+        raise ValueError("invalid posture probabilities or confidence")
+    if not math.isclose(sum(probabilities.values()), 1, abs_tol=1e-6):
+        raise ValueError("posture probabilities do not sum to one")
+    if probabilities[entry["choice"]] != max(probabilities.values()):
+        raise ValueError("selected posture is not a maximum-probability choice")
+    return {
+        "verdict": entry["choice"],
+        "confidence": confidence,
+        "probabilities": probabilities,
+        "model": answer["model"],
+        "usage": answer.get("usage"),
+    }
 
 
 def apply_verdict(
@@ -188,7 +217,16 @@ def apply_verdict(
     verdict falls back to hold. The current posture is never mutated.
     """
     v = (verdict.verdict or "").strip().lower()
-    confidence = float(verdict.confidence)
+    try:
+        confidence = float(verdict.confidence)
+    except (TypeError, ValueError):
+        return dict(current_posture)
+    if (
+        isinstance(verdict.confidence, bool)
+        or not math.isfinite(confidence)
+        or not 0 <= confidence <= 1
+    ):
+        return dict(current_posture)
     if v not in VALID_POSTURES:
         return dict(current_posture)
     if v == "hold":
@@ -228,4 +266,8 @@ def run_segment(
     path behind the budget rail."""
     state = build_state(results, goal, current_posture)
     verdict = judge(state)
+    if isinstance(verdict, dict):
+        verdict = SimpleNamespace(
+            verdict=verdict.get("verdict"), confidence=verdict.get("confidence")
+        )
     return apply_verdict(current_posture, verdict)
