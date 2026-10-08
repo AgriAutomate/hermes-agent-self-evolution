@@ -672,8 +672,9 @@ def endpoint_for(candidate: dict) -> tuple[str, str]:
 # Transient transport states are retried, not eliminated: a 429/503 or a
 # client timeout says the provider was having a moment, not that the model is
 # unavailable. True unavailability (403/404/400) returns immediately so the
-# elimination still carries a receipt.
-RETRYABLE_HTTP = {429, 500, 502, 503, 529}
+# elimination still carries a receipt. 504 belongs here too: run 3 lost
+# glm-5.3's bugfix to a gateway timeout that was never retried.
+RETRYABLE_HTTP = {429, 500, 502, 503, 504, 529}
 RETRY_BACKOFF_S = (15, 45)
 
 
