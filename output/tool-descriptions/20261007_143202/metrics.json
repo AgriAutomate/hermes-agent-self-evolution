@@ -1,0 +1,13 @@
+{
+ "target": "search_files",
+ "iterations": 4,
+ "optimizer_model": "openai/gpt-4.1-mini",
+ "baseline_accuracy": 9.0,
+ "holdout": 34,
+ "evolved_accuracy": 20.0,
+ "change": 11.0,
+ "baseline_chars": 725,
+ "evolved_chars": 758,
+ "elapsed_seconds": 2.6,
+ "constraints_passed": true
+}

@@ -1,0 +1,19 @@
+{
+  "receipt_id": "3513f0ff-047e-49cc-b574-3dfccee4cb23",
+  "started_at": "2026-10-08T11:09:45.089723+00:00",
+  "requested_model": "muse-spark-1.3-contributor-free",
+  "request_hash": "f78e9ccd8785dc39dcc27666e519c4c1f1e783f5f9013d8c0f45f7551c15598e",
+  "request_bytes": 148,
+  "budget_note": "founder keep advancing 2026-10-08 measured model selection, stage 1 availability probe",
+  "request": {
+    "model": "muse-spark-1.3-contributor-free",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Reply with exactly: OK"
+      }
+    ],
+    "max_tokens": 8,
+    "temperature": 0
+  }
+}

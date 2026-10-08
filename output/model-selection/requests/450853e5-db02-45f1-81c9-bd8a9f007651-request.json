@@ -1,0 +1,19 @@
+{
+  "receipt_id": "450853e5-db02-45f1-81c9-bd8a9f007651",
+  "started_at": "2026-10-08T11:09:44.043106+00:00",
+  "requested_model": "longcat-2.5-preview-free",
+  "request_hash": "06a179a84ebd4da935fbd0e562f38abe72b45f14c3685df44cf84db1202671bc",
+  "request_bytes": 141,
+  "budget_note": "founder keep advancing 2026-10-08 measured model selection, stage 1 availability probe",
+  "request": {
+    "model": "longcat-2.5-preview-free",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Reply with exactly: OK"
+      }
+    ],
+    "max_tokens": 8,
+    "temperature": 0
+  }
+}

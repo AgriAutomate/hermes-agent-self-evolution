@@ -1,0 +1,9 @@
+{
+  "receipt_id": "51ff75b3-9ba8-4463-8c93-aee67a8aed6f",
+  "finished_at": "2026-10-08T11:09:46.669106+00:00",
+  "http_status": 403,
+  "returned_model": null,
+  "usage": null,
+  "response": null,
+  "error": "HTTPError"
+}

@@ -1,0 +1,19 @@
+{
+  "receipt_id": "87f47aa5-c05e-47c9-93a8-11ba0e833b60",
+  "started_at": "2026-10-08T11:09:48.223508+00:00",
+  "requested_model": "deepseek-v4.1-flash",
+  "request_hash": "1c5ce5a3d6634061a207a0a1ae4b520f91a1ae4665c9f884bdfb758101b1fd47",
+  "request_bytes": 136,
+  "budget_note": "founder keep advancing 2026-10-08 measured model selection, stage 1 availability probe",
+  "request": {
+    "model": "deepseek-v4.1-flash",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Reply with exactly: OK"
+      }
+    ],
+    "max_tokens": 8,
+    "temperature": 0
+  }
+}

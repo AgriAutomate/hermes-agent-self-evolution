@@ -1,0 +1,17 @@
+{
+  "skill_name": "graph-navigate",
+  "timestamp": "20261007_115730",
+  "iterations": 4,
+  "optimizer_model": "openai/gpt-4.1-mini",
+  "eval_model": "openai/gpt-4.1-mini",
+  "baseline_score": 0.47432307692307696,
+  "evolved_score": 0.5154102564102564,
+  "improvement": 0.04108717948717944,
+  "baseline_size": 2913,
+  "evolved_size": 2166,
+  "train_examples": 10,
+  "val_examples": 5,
+  "holdout_examples": 5,
+  "elapsed_seconds": 505.5457019805908,
+  "constraints_passed": true
+}

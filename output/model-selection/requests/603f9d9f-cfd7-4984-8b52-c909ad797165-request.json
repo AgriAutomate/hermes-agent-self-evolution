@@ -1,0 +1,19 @@
+{
+  "receipt_id": "603f9d9f-cfd7-4984-8b52-c909ad797165",
+  "started_at": "2026-10-08T11:09:42.477688+00:00",
+  "requested_model": "fledge-alpha-free",
+  "request_hash": "0fd12b3d312bd9e1279f67ba3ace3756164c23708da4689c675c39ec62990307",
+  "request_bytes": 134,
+  "budget_note": "founder keep advancing 2026-10-08 measured model selection, stage 1 availability probe",
+  "request": {
+    "model": "fledge-alpha-free",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Reply with exactly: OK"
+      }
+    ],
+    "max_tokens": 8,
+    "temperature": 0
+  }
+}

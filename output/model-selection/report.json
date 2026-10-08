@@ -1,0 +1,175 @@
+{
+  "harness_author": "opencode/big-pickle",
+  "endpoint": "https://opencode.ai/zen/v1/chat/completions",
+  "started_at": "2026-10-08T11:09:41Z",
+  "xai_note": "no free xai text model exists in the catalogue (grok-imagine only)",
+  "probe": [
+    {
+      "model": "space-bunny-free",
+      "provider": "opencode",
+      "family": "free",
+      "ok": false,
+      "http": 403,
+      "detail": "error code: 1010\n",
+      "latency_s": 0.571,
+      "score": 0.0,
+      "probe_text": ""
+    },
+    {
+      "model": "exo-free",
+      "provider": "opencode",
+      "family": "free",
+      "ok": false,
+      "http": 403,
+      "detail": "error code: 1010\n",
+      "latency_s": 0.527,
+      "score": 0.0,
+      "probe_text": ""
+    },
+    {
+      "model": "fledge-alpha-free",
+      "provider": "opencode",
+      "family": "free",
+      "ok": false,
+      "http": 403,
+      "detail": "error code: 1010\n",
+      "latency_s": 0.519,
+      "score": 0.0,
+      "probe_text": ""
+    },
+    {
+      "model": "ling-3.1-flash-free",
+      "provider": "opencode",
+      "family": "free",
+      "ok": false,
+      "http": 403,
+      "detail": "error code: 1010\n",
+      "latency_s": 0.525,
+      "score": 0.0,
+      "probe_text": ""
+    },
+    {
+      "model": "ling-3.0-flash-fin-free",
+      "provider": "opencode",
+      "family": "free",
+      "ok": false,
+      "http": 403,
+      "detail": "error code: 1010\n",
+      "latency_s": 0.521,
+      "score": 0.0,
+      "probe_text": ""
+    },
+    {
+      "model": "longcat-2.5-preview-free",
+      "provider": "opencode",
+      "family": "free",
+      "ok": false,
+      "http": 403,
+      "detail": "error code: 1010\n",
+      "latency_s": 0.524,
+      "score": 0.0,
+      "probe_text": ""
+    },
+    {
+      "model": "mimo-v2.6-flash-free",
+      "provider": "opencode",
+      "family": "free",
+      "ok": false,
+      "http": 403,
+      "detail": "error code: 1010\n",
+      "latency_s": 0.523,
+      "score": 0.0,
+      "probe_text": ""
+    },
+    {
+      "model": "muse-spark-1.3-contributor-free",
+      "provider": "opencode",
+      "family": "free",
+      "ok": false,
+      "http": 403,
+      "detail": "error code: 1010\n",
+      "latency_s": 0.527,
+      "score": 0.0,
+      "probe_text": ""
+    },
+    {
+      "model": "nemotron-3.5-lightning-free",
+      "provider": "opencode",
+      "family": "free",
+      "ok": false,
+      "http": 403,
+      "detail": "error code: 1010\n",
+      "latency_s": 0.529,
+      "score": 0.0,
+      "probe_text": ""
+    },
+    {
+      "model": "nemotron-3-ultra-free",
+      "provider": "opencode",
+      "family": "free",
+      "ok": false,
+      "http": 403,
+      "detail": "error code: 1010\n",
+      "latency_s": 0.525,
+      "score": 0.0,
+      "probe_text": ""
+    },
+    {
+      "model": "big-pickle",
+      "provider": "opencode",
+      "family": "session-only",
+      "ok": false,
+      "http": 403,
+      "detail": "error code: 1010\n",
+      "latency_s": 0.505,
+      "score": 0.0,
+      "probe_text": ""
+    },
+    {
+      "model": "kimi-k3",
+      "provider": "nvidia",
+      "family": "routed",
+      "ok": false,
+      "http": 403,
+      "detail": "error code: 1010\n",
+      "latency_s": 0.52,
+      "score": 0.0,
+      "probe_text": ""
+    },
+    {
+      "model": "glm-5.3-flash",
+      "provider": "nvidia",
+      "family": "routed",
+      "ok": false,
+      "http": 403,
+      "detail": "error code: 1010\n",
+      "latency_s": 0.528,
+      "score": 0.0,
+      "probe_text": ""
+    },
+    {
+      "model": "deepseek-v4.1-flash",
+      "provider": "nvidia",
+      "family": "routed",
+      "ok": false,
+      "http": 403,
+      "detail": "error code: 1010\n",
+      "latency_s": 0.524,
+      "score": 0.0,
+      "probe_text": ""
+    },
+    {
+      "model": "gpt-oss-20b",
+      "provider": "nvidia",
+      "family": "routed",
+      "ok": false,
+      "http": 403,
+      "detail": "error code: 1010\n",
+      "latency_s": 0.536,
+      "score": 0.0,
+      "probe_text": ""
+    }
+  ],
+  "survivors": [],
+  "model_dispatches": 15
+}
