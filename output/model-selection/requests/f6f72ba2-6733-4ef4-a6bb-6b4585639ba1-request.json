@@ -1,0 +1,19 @@
+{
+  "receipt_id": "f6f72ba2-6733-4ef4-a6bb-6b4585639ba1",
+  "started_at": "2026-10-08T11:09:46.670849+00:00",
+  "requested_model": "big-pickle",
+  "request_hash": "f3cf644381c7b9e0f684fa64ad4be40a7a7fdd0b68542c405963644fa2b6248e",
+  "request_bytes": 127,
+  "budget_note": "founder keep advancing 2026-10-08 measured model selection, stage 1 availability probe",
+  "request": {
+    "model": "big-pickle",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Reply with exactly: OK"
+      }
+    ],
+    "max_tokens": 8,
+    "temperature": 0
+  }
+}

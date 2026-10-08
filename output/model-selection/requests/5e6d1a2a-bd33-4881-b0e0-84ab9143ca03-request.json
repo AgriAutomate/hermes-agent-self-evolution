@@ -1,0 +1,19 @@
+{
+  "receipt_id": "5e6d1a2a-bd33-4881-b0e0-84ab9143ca03",
+  "started_at": "2026-10-08T11:09:44.567099+00:00",
+  "requested_model": "mimo-v2.6-flash-free",
+  "request_hash": "5185090a9d53cee5228b4fda743593b357ebfc7fd4781201d9228982f85726ba",
+  "request_bytes": 137,
+  "budget_note": "founder keep advancing 2026-10-08 measured model selection, stage 1 availability probe",
+  "request": {
+    "model": "mimo-v2.6-flash-free",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Reply with exactly: OK"
+      }
+    ],
+    "max_tokens": 8,
+    "temperature": 0
+  }
+}

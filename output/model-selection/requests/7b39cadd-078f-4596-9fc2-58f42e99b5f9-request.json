@@ -1,0 +1,19 @@
+{
+  "receipt_id": "7b39cadd-078f-4596-9fc2-58f42e99b5f9",
+  "started_at": "2026-10-08T11:09:41.379453+00:00",
+  "requested_model": "space-bunny-free",
+  "request_hash": "2c9a791a28db6b125f699da43dab22f602505c811f94f97bcca4e0150e429821",
+  "request_bytes": 133,
+  "budget_note": "founder keep advancing 2026-10-08 measured model selection, stage 1 availability probe",
+  "request": {
+    "model": "space-bunny-free",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Reply with exactly: OK"
+      }
+    ],
+    "max_tokens": 8,
+    "temperature": 0
+  }
+}

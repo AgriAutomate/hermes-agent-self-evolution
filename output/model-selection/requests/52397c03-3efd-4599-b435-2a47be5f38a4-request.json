@@ -1,0 +1,19 @@
+{
+  "receipt_id": "52397c03-3efd-4599-b435-2a47be5f38a4",
+  "started_at": "2026-10-08T11:09:48.747091+00:00",
+  "requested_model": "gpt-oss-20b",
+  "request_hash": "fcfb1e1fedadb3deda2dfeaef3150802e9a66678eae868a8768b6d46bd7ef88c",
+  "request_bytes": 128,
+  "budget_note": "founder keep advancing 2026-10-08 measured model selection, stage 1 availability probe",
+  "request": {
+    "model": "gpt-oss-20b",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Reply with exactly: OK"
+      }
+    ],
+    "max_tokens": 8,
+    "temperature": 0
+  }
+}

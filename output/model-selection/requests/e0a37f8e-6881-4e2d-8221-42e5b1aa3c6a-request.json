@@ -1,0 +1,19 @@
+{
+  "receipt_id": "e0a37f8e-6881-4e2d-8221-42e5b1aa3c6a",
+  "started_at": "2026-10-08T11:09:45.616994+00:00",
+  "requested_model": "nemotron-3.5-lightning-free",
+  "request_hash": "c6a459fd9047fa65ff5b015b49680027034cfdc8b3cf4fbd81306cfe7baa6b77",
+  "request_bytes": 144,
+  "budget_note": "founder keep advancing 2026-10-08 measured model selection, stage 1 availability probe",
+  "request": {
+    "model": "nemotron-3.5-lightning-free",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Reply with exactly: OK"
+      }
+    ],
+    "max_tokens": 8,
+    "temperature": 0
+  }
+}

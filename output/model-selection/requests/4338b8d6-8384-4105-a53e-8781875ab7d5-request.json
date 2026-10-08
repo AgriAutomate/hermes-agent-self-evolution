@@ -1,0 +1,19 @@
+{
+  "receipt_id": "4338b8d6-8384-4105-a53e-8781875ab7d5",
+  "started_at": "2026-10-08T11:09:42.997177+00:00",
+  "requested_model": "ling-3.1-flash-free",
+  "request_hash": "bb2125390da6cac2d283dc2f9b4502aa43edb7e85c909dba9d2fb5b4824b0c4f",
+  "request_bytes": 136,
+  "budget_note": "founder keep advancing 2026-10-08 measured model selection, stage 1 availability probe",
+  "request": {
+    "model": "ling-3.1-flash-free",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Reply with exactly: OK"
+      }
+    ],
+    "max_tokens": 8,
+    "temperature": 0
+  }
+}

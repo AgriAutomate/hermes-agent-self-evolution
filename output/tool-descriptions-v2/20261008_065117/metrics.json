@@ -1,0 +1,38 @@
+{
+ "target": "search_files",
+ "generations": 4,
+ "model": "openai/gpt-4.1-mini",
+ "holdout_baseline": 7,
+ "holdout_size": 12,
+ "holdout_evolved": 7,
+ "change": 0,
+ "baseline_chars": 725,
+ "evolved_chars": 605,
+ "elapsed_seconds": 690.9,
+ "history": [
+  {
+   "gen": 1,
+   "train": 17,
+   "cand_train": 17,
+   "accepted": true
+  },
+  {
+   "gen": 2,
+   "train": 17,
+   "cand_train": 17,
+   "accepted": true
+  },
+  {
+   "gen": 3,
+   "train": 17,
+   "cand_train": 17,
+   "accepted": true
+  },
+  {
+   "gen": 4,
+   "train": 17,
+   "cand_train": 17,
+   "accepted": true
+  }
+ ]
+}

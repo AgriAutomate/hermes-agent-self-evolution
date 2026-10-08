@@ -1,0 +1,19 @@
+{
+  "receipt_id": "51ff75b3-9ba8-4463-8c93-aee67a8aed6f",
+  "started_at": "2026-10-08T11:09:46.146155+00:00",
+  "requested_model": "nemotron-3-ultra-free",
+  "request_hash": "7fa29412eea4a5af5719dae537ca6145856821dc9c826f877b7429348edbe215",
+  "request_bytes": 138,
+  "budget_note": "founder keep advancing 2026-10-08 measured model selection, stage 1 availability probe",
+  "request": {
+    "model": "nemotron-3-ultra-free",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Reply with exactly: OK"
+      }
+    ],
+    "max_tokens": 8,
+    "temperature": 0
+  }
+}

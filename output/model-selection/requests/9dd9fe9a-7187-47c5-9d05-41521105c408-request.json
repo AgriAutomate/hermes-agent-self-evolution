@@ -1,0 +1,19 @@
+{
+  "receipt_id": "9dd9fe9a-7187-47c5-9d05-41521105c408",
+  "started_at": "2026-10-08T11:09:41.950224+00:00",
+  "requested_model": "exo-free",
+  "request_hash": "600433db1aa00b0d4916612ebc71e21d4a502e7a4a160b74d9cbe6ef09d9eae8",
+  "request_bytes": 125,
+  "budget_note": "founder keep advancing 2026-10-08 measured model selection, stage 1 availability probe",
+  "request": {
+    "model": "exo-free",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Reply with exactly: OK"
+      }
+    ],
+    "max_tokens": 8,
+    "temperature": 0
+  }
+}
