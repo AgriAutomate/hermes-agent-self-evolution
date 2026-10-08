@@ -549,17 +549,19 @@ TASKS = [
         "prompt": BUGFIX_PROMPT,
         "grade": grade_bugfix,
         # Generous caps on purpose: reasoning models spend tokens on hidden
-        # reasoning before the visible answer. A tight cap scores the harness's
-        # budget, not the model (run 1 proved this: finish_reason=length with an
-        # empty answer = a forced 0.0 for four models). Every task still records
-        # actual usage and latency, so wasted tokens are visible in the data.
-        "max_tokens": 6000,
+        # reasoning before the visible answer, and reasoning_content is billed
+        # against the SAME completion budget. A tight cap scores the harness,
+        # not the model (run 1 forced four 0.0s; run 2 still lost deepseek and
+        # glm-5.3 at 6000). Usage and reasoning tokens are recorded per call,
+        # so a model needing 11k tokens of thinking to fix 15 lines stays
+        # visible as slow instead of being silently excused.
+        "max_tokens": 12000,
     },
     {
         "name": "review",
         "prompt": DEFECT_PROMPT,
         "grade": grade_review,
-        "max_tokens": 3000,
+        "max_tokens": 6000,
     },
     {
         "name": "extract",
@@ -579,7 +581,7 @@ TIEBREAK_TASK = {
     "name": "bugfix2",
     "prompt": BUGFIX2_PROMPT,
     "grade": grade_bugfix2,
-    "max_tokens": 6000,
+    "max_tokens": 12000,
 }
 
 ALL_TASKS: list[dict] = TASKS + [TIEBREAK_TASK]
@@ -675,6 +677,22 @@ RETRYABLE_HTTP = {429, 500, 502, 503, 529}
 RETRY_BACKOFF_S = (15, 45)
 
 
+def _reasoning_tokens(usage: object) -> int | None:
+    """Hidden reasoning spend, when the provider reports it.
+
+    Graded output is always the VISIBLE answer -- reasoning_content is never
+    scored -- but how many tokens a model burned before answering is exactly
+    the kind of fact a mutator selection should keep in the record.
+    """
+    if not isinstance(usage, dict):
+        return None
+    details = usage.get("completion_tokens_details")
+    if not isinstance(details, dict):
+        return None
+    value = details.get("reasoning_tokens")
+    return value if isinstance(value, int) else None
+
+
 def dispatch(
     ledger: RequestLedger,
     model: str,
@@ -739,13 +757,15 @@ def dispatch(
             }
     choices = response.get("choices") or [{}]
     content = choices[0].get("message", {}).get("content") or ""
+    usage = response.get("usage")
     return {
         "model": model,
         "ok": True,
         "answered_by": response.get("model"),
         "attempts": attempts + 1,
         "latency_s": round(time.time() - started, 3),
-        "usage": response.get("usage"),
+        "usage": usage,
+        "reasoning_tokens": _reasoning_tokens(usage),
         "finish_reason": choices[0].get("finish_reason"),
         "answer": content,
     }
