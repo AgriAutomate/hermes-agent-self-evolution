@@ -1,0 +1,125 @@
+{
+  "executingModel": "opencode/gpt-6.1-sol",
+  "baseCommit": "75f2dacfd154f7706eafe910b8a6fe04cd7256b9",
+  "kind": "offline replay of saved judgments; no second-opinion-quality claim",
+  "liveModelDispatches": 0,
+  "fullSuitePassed": 254,
+  "replays": [
+    {
+      "receipt": "scripts/output/governor-live-validation/converged-31a8b6bc8755c977.json",
+      "stateHashVerified": true,
+      "firstJudgment": {
+        "verdict": "explore",
+        "confidence": 0.86
+      },
+      "beforePosture": {
+        "sharpness": 5,
+        "midpoint_score": "p50"
+      },
+      "afterPosture": {
+        "sharpness": 10,
+        "midpoint_score": "p75"
+      },
+      "decision": {
+        "escalation_required": true,
+        "escalation_attempted": false,
+        "escalation_reason": "explore-on-ceiling",
+        "resolution": "unavailable",
+        "primary": {
+          "verdict": "explore",
+          "confidence": 0.86,
+          "model": null
+        }
+      }
+    },
+    {
+      "receipt": "scripts/output/governor-live-validation/hedged_ceiling-053282c3441d8668.json",
+      "stateHashVerified": true,
+      "firstJudgment": {
+        "verdict": "explore",
+        "confidence": 0.85
+      },
+      "beforePosture": {
+        "sharpness": 5,
+        "midpoint_score": "p50"
+      },
+      "afterPosture": {
+        "sharpness": 10,
+        "midpoint_score": "p75"
+      },
+      "decision": {
+        "escalation_required": true,
+        "escalation_attempted": false,
+        "escalation_reason": "explore-on-ceiling",
+        "resolution": "unavailable",
+        "primary": {
+          "verdict": "explore",
+          "confidence": 0.85,
+          "model": null
+        }
+      }
+    },
+    {
+      "receipt": "scripts/output/governor-live-validation/plateau-22aafb19d165f88f.json",
+      "stateHashVerified": true,
+      "firstJudgment": {
+        "verdict": "explore",
+        "confidence": 0.96
+      },
+      "beforePosture": {
+        "sharpness": 5,
+        "midpoint_score": "p50"
+      },
+      "afterPosture": {
+        "sharpness": 5,
+        "midpoint_score": "p50"
+      },
+      "decision": {
+        "escalation_required": false,
+        "escalation_attempted": false,
+        "escalation_reason": "",
+        "resolution": "primary",
+        "primary": {
+          "verdict": "explore",
+          "confidence": 0.96,
+          "model": null
+        }
+      }
+    },
+    {
+      "receipt": "scripts/output/governor-live-validation/steady_improvement-8cb0d611b79d1411.json",
+      "stateHashVerified": true,
+      "firstJudgment": {
+        "verdict": "hold",
+        "confidence": 0.73
+      },
+      "beforePosture": {
+        "sharpness": 10,
+        "midpoint_score": "p75"
+      },
+      "afterPosture": {
+        "sharpness": 10,
+        "midpoint_score": "p75"
+      },
+      "decision": {
+        "escalation_required": true,
+        "escalation_attempted": false,
+        "escalation_reason": "hold-on-clean-improvement",
+        "resolution": "unavailable",
+        "primary": {
+          "verdict": "hold",
+          "confidence": 0.73,
+          "model": null
+        }
+      }
+    }
+  ],
+  "excluded": [
+    {
+      "receipt": "scripts/output/governor-live-validation/plateau-e6836773e049e37c.json",
+      "reason": "saved hash does not match reconstructed current fixture; not replay evidence",
+      "savedStateHash": "e6836773e049e37c",
+      "reconstructedStateHash": "22aafb19d165f88f"
+    }
+  ]
+}
