@@ -1,0 +1,31 @@
+{
+  "receipt_id": "2f08c5e1-5c5b-41ea-8d94-233a869527b7",
+  "finished_at": "2026-10-11T23:47:53.767295+00:00",
+  "http_status": 200,
+  "returned_model": "jev-1.13.0",
+  "usage": {
+    "input_tokens": 685,
+    "output_tokens": 49
+  },
+  "response": {
+    "model": "jev-1.13.0",
+    "answers": {
+      "posture": {
+        "type": "choice",
+        "choice": "explore",
+        "confidence": 0.95,
+        "probabilities": {
+          "exploit": 0.0,
+          "explore": 0.96,
+          "hold": 0.01,
+          "stop": 0.03
+        }
+      }
+    },
+    "usage": {
+      "input_tokens": 685,
+      "output_tokens": 49
+    }
+  },
+  "error": null
+}

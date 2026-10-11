@@ -1,0 +1,119 @@
+{
+  "schemaVersion": "governor-second-opinion-qualification.v1",
+  "executingModel": "opencode/gpt-6.1-sol",
+  "secondOpinionModel": "jev-latest",
+  "kind": "offline-recorded primary + live second opinion; deterministic grading",
+  "budgetNote": "CAP-approved 2026-10-12: US / 32 dispatches for governor and skill qualification",
+  "maxCalls": 8,
+  "callsUsed": 3,
+  "doubtfulCases": 3,
+  "resolved": 0,
+  "unresolved": 3,
+  "callFailures": 0,
+  "excluded": [
+    {
+      "receipt": "plateau-e6836773e049e37c",
+      "reason": "saved state hash does not match the current fixture",
+      "savedStateHash": "e6836773e049e37c",
+      "reconstructedStateHash": "22aafb19d165f88f"
+    }
+  ],
+  "results": [
+    {
+      "fixture": "converged",
+      "stateHash": "31a8b6bc8755c977",
+      "primary": {
+        "verdict": "explore",
+        "confidence": 0.86
+      },
+      "primaryDoubtful": true,
+      "escalationReason": "explore-on-ceiling",
+      "second": {
+        "verdict": "explore",
+        "confidence": 0.95,
+        "model": "jev-1.13.0"
+      },
+      "secondStillDoubtful": true,
+      "secondReason": "explore-on-ceiling",
+      "status": "unresolved",
+      "applied": {
+        "sharpness": 10,
+        "midpoint_score": "p75"
+      },
+      "wouldMapTo": {
+        "sharpness": 5,
+        "midpoint_score": "p50"
+      },
+      "trendConsistent": true
+    },
+    {
+      "fixture": "hedged_ceiling",
+      "stateHash": "053282c3441d8668",
+      "primary": {
+        "verdict": "explore",
+        "confidence": 0.85
+      },
+      "primaryDoubtful": true,
+      "escalationReason": "explore-on-ceiling",
+      "second": {
+        "verdict": "explore",
+        "confidence": 0.95,
+        "model": "jev-1.13.0"
+      },
+      "secondStillDoubtful": true,
+      "secondReason": "explore-on-ceiling",
+      "status": "unresolved",
+      "applied": {
+        "sharpness": 10,
+        "midpoint_score": "p75"
+      },
+      "wouldMapTo": {
+        "sharpness": 5,
+        "midpoint_score": "p50"
+      },
+      "trendConsistent": true
+    },
+    {
+      "fixture": "plateau",
+      "stateHash": "22aafb19d165f88f",
+      "primary": {
+        "verdict": "explore",
+        "confidence": 0.96
+      },
+      "primaryDoubtful": false,
+      "escalationReason": "",
+      "status": "not-doubtful",
+      "applied": {
+        "sharpness": 5,
+        "midpoint_score": "p50"
+      }
+    },
+    {
+      "fixture": "steady_improvement",
+      "stateHash": "8cb0d611b79d1411",
+      "primary": {
+        "verdict": "hold",
+        "confidence": 0.73
+      },
+      "primaryDoubtful": true,
+      "escalationReason": "hold-on-clean-improvement",
+      "second": {
+        "verdict": "hold",
+        "confidence": 0.91,
+        "model": "jev-1.13.0"
+      },
+      "secondStillDoubtful": true,
+      "secondReason": "hold-on-clean-improvement",
+      "status": "unresolved",
+      "applied": {
+        "sharpness": 10,
+        "midpoint_score": "p75"
+      },
+      "wouldMapTo": {
+        "sharpness": 10,
+        "midpoint_score": "p75"
+      },
+      "trendConsistent": true
+    }
+  ]
+}

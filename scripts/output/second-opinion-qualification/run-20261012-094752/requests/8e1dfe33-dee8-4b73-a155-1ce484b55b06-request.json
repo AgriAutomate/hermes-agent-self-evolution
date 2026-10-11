@@ -1,0 +1,59 @@
+{
+  "receipt_id": "8e1dfe33-dee8-4b73-a155-1ce484b55b06",
+  "started_at": "2026-10-11T23:47:52.815899+00:00",
+  "requested_model": "jev-latest",
+  "request_hash": "bc47267ea499795391d84a71252828706f7ea30681317a21b14779b9340a52f2",
+  "request_bytes": 1401,
+  "budget_note": "CAP-approved 2026-10-12: US / 32 dispatches for governor and skill qualification",
+  "request": {
+    "state": {
+      "evolution": {
+        "goal": "evolve the parrot prompt (validation fixture)",
+        "iterations_so_far": 5,
+        "best_scores_last_5": [
+          0.95,
+          0.95,
+          0.95,
+          0.95,
+          0.95
+        ],
+        "best_score_peak": 0.95,
+        "improvement_over_window": 0.0,
+        "population_size_last": 24,
+        "distinct_children_per_iteration": [
+          1,
+          1,
+          0,
+          1,
+          1
+        ],
+        "plateau_iterations": 5,
+        "learning_log_outcomes": [],
+        "current_posture": {
+          "sharpness": 10,
+          "midpoint_score": "p75"
+        }
+      },
+      "governor_review": {
+        "first_judgment": {
+          "verdict": "explore",
+          "confidence": 0.86
+        },
+        "escalation_reason": "explore-on-ceiling"
+      }
+    },
+    "model": "jev-latest",
+    "questions": {
+      "posture": {
+        "type": "choice",
+        "instructions": "Given this evolution state, which sampling posture should the next segment use? The evolver balances exploiting the highest-scoring organisms against generating diverse populations. A plateau with shrinking novelty suggests exploration; steady improvement suggests holding the current posture; a score converged at its peak suggests stopping.",
+        "criteria": {
+          "exploit": "Scores improving steadily; concentrate on the best organisms. sharpness 20, midpoint p90.",
+          "explore": "Scores plateaued and/or novelty shrinking; diversity to escape a local optimum. sharpness 5, midpoint p50.",
+          "hold": "The current posture is working; keep sharpness and midpoint unchanged.",
+          "stop": "The score is converged at its peak and further segments are unlikely to help; end the run early."
+        }
+      }
+    }
+  }
+}
