@@ -1,10 +1,10 @@
 {
-  "receipt_id": "1882307a-94a7-4bfd-804d-b1d416d12836",
-  "started_at": "2026-10-11T23:47:53.769594+00:00",
+  "receipt_id": "3f2f9984-6e5f-4d88-9202-f8116f7dabe8",
+  "started_at": "2026-10-12T01:46:01.953117+00:00",
   "requested_model": "jev-latest",
   "request_hash": "9f0195e101ef9743436afe4baf889d8bc78a9345adc59b5f0e429540a5c41b26",
   "request_bytes": 1404,
-  "budget_note": "CAP-approved 2026-10-12: US / 32 dispatches for governor and skill qualification",
+  "budget_note": "CAP-approved 2026-10-12: US$1 / 32 dispatches for governor and skill qualification",
   "request": {
     "state": {
       "evolution": {

@@ -23,9 +23,14 @@ it defaults to `D:/dev/caches/temp/opencode`.
   `--budget_note`. The cap counts attempted dispatches, including failures;
   it is a request limit, not a claimed dollar-price guarantee.
 - Iterations run in bounded segments of `--segment_iterations` (default 5),
-  retaining one upstream population. Jev changes sampling parameters between
-  segments, with the existing provisional confidence thresholds. Invalid
-  replies hold the current parameters and record the error.
+  retaining one upstream population. Between segments a Jev judgment may change
+  sampling parameters through the fixed preset dictionary, under the provisional
+  confidence thresholds. A judgment that contradicts the observed trend, or sits
+  below a floor (including a stop below its own higher floor), is not mapped: it
+  holds the current posture and records the reason. An optional second opinion
+  may be supplied; its answer is checked the same way, and an unavailable or
+  still-doubtful review holds the posture. Invalid replies hold the current
+  parameters and record the error.
 - `OPENCODE_API_KEY` supplies the mutation client; `JEV_API_KEY` enables the
   governor. No keys or authorization headers are written to receipts.
 - Budget refusal stops new dispatches while allowing already-produced sibling

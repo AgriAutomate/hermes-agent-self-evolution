@@ -12,10 +12,13 @@ Method (no judge model grades the run):
   2. Replay the recorded primary answer. Compute needs_escalation deterministically.
   3. For doubtful cases only, call the live second opinion through a RequestLedger
      with an explicit call cap and one receipt per dispatch.
-  4. Re-check the second answer with the SAME predicate. "Resolved" means the
-     second answer is no longer doubtful and maps to a posture that does not
-     contradict the observed trend; "unresolved" means it stays doubtful and the
-     posture is held. Code computes the trend and the outcome.
+  4. Re-check the second answer with the SAME predicate. `needs_escalation`
+     already returns True for a verdict that contradicts the observed trend, so
+     "resolved" (the runner would apply it) implies trend consistency;
+     `trendConsistent` is recorded as an additional explicit check, not a second
+     gate. `BudgetExhausted` stops the loop (it is a refusal, not a call failure).
+  5. Write the JSON report AND a markdown summary from that same JSON, so the
+     human-readable numbers cannot drift from the artifact.
 
 Budget line: CAP-approved 2026-10-12, max US$1 and 32 dispatch attempts combined
 for governor/skill qualification. This script's own cap is the --max-calls flag.
@@ -38,7 +41,7 @@ from types import SimpleNamespace
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
-from evolution.code.request_ledger import RequestLedger, write_json  # noqa: E402
+from evolution.code.request_ledger import BudgetExhausted, RequestLedger, write_json  # noqa: E402
 from evolution.code.sampling_governor import (  # noqa: E402
     analyze_trend,
     apply_verdict,
@@ -169,6 +172,12 @@ def main() -> int:
             second = ask_jev_choice(
                 review_state, api_key=api_key, model=args.model, ledger=ledger
             )
+        except BudgetExhausted:
+            # A cap refusal is not a call failure: nothing was dispatched.
+            # Stop the loop instead of recording the remaining cases as failures.
+            entry.update(status="budget-refused")
+            results.append(entry)
+            break
         except Exception as cause:  # noqa: BLE001 - record the failure honestly
             entry.update(status="call-failed", error=type(cause).__name__)
             results.append(entry)
@@ -205,10 +214,48 @@ def main() -> int:
         "resolved": sum(r.get("status") == "resolved" for r in results),
         "unresolved": sum(r.get("status") == "unresolved" for r in results),
         "callFailures": sum(r.get("status") == "call-failed" for r in results),
+        "budgetRefused": sum(r.get("status") == "budget-refused" for r in results),
         "excluded": excluded,
         "results": results,
     }
     write_json(run_dir / "report.json", report)
+    # Generate the human-readable summary FROM the JSON so the prose cannot drift
+    # from the artifact (the defect a review caught in the hand-written report).
+    summary_lines = [
+        "# Governor second-opinion qualification",
+        "",
+        f"- Second-opinion model: `{report['secondOpinionModel']}`",
+        f"- Budget note: {report['budgetNote']}",
+        f"- Call cap: {report['maxCalls']} | calls used: {report['callsUsed']}",
+        f"- Doubtful cases: {report['doubtfulCases']} | resolved: {report['resolved']}"
+        f" | unresolved: {report['unresolved']} | call failures: {report['callFailures']}"
+        f" | budget refusals: {report['budgetRefused']}",
+        "",
+        "| Fixture | Primary | Reason | Second | Second verdict | Outcome |",
+        "| --- | --- | --- | --- | --- | --- |",
+    ]
+    for r in results:
+        if not r.get("primaryDoubtful"):
+            summary_lines.append(
+                f"| {r['fixture']} | {r['primary']['verdict']} @{r['primary']['confidence']}"
+                f" | (mapped cleanly) | - | - | applied |"
+            )
+            continue
+        second = r.get("second")
+        second_text = f"{second['verdict']} @{second['confidence']}" if second else "-"
+        outcome = r.get("status", "-")
+        summary_lines.append(
+            f"| {r['fixture']} | {r['primary']['verdict']} @{r['primary']['confidence']}"
+            f" | {r['escalationReason']} | {second_text} | {r.get('secondReason', '') or '-'}"
+            f" | {outcome} |"
+        )
+    summary_lines.append("")
+    summary_lines.append(
+        "Generated from report.json in this directory; edit the script, not this file."
+    )
+    (run_dir / "summary.md").write_text(
+        "\n".join(summary_lines) + "\n", encoding="utf-8"
+    )
     print(
         json.dumps(
             {

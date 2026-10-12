@@ -10,9 +10,13 @@ fixed for an entire run, so a run that plateaus keeps exploiting at p75
 exactly when diversity is needed to escape the local optima.
 
 This governor runs the evolver in SEGMENTS (e.g. --num_iterations 5), reads
-results.jsonl between segments, asks Jev ONE Choice judgment over the
-observed state, and maps the answer through a FIXED dictionary to the next
-segment's flags.
+results.jsonl between segments, asks Jev a Choice judgment over the observed
+state, and maps the answer through a FIXED dictionary to the next segment's
+flags. Before mapping, `needs_escalation` checks the judgment against the
+observed trend; a doubtful answer is not mapped — it holds the current posture,
+or is handed to at most one optional second opinion whose answer is checked the
+same way. This module defines that logic; the segment loop that calls it lives
+in `governed_runner.run_governed`.
 
 Design constraints (docs/SELF-EVOLUTION.md, the sampling governor section):
 
