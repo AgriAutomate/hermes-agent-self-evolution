@@ -10,9 +10,13 @@ fixed for an entire run, so a run that plateaus keeps exploiting at p75
 exactly when diversity is needed to escape the local optima.
 
 This governor runs the evolver in SEGMENTS (e.g. --num_iterations 5), reads
-results.jsonl between segments, asks Jev ONE Choice judgment over the
-observed state, and maps the answer through a FIXED dictionary to the next
-segment's flags.
+results.jsonl between segments, asks Jev a Choice judgment over the observed
+state, and maps the answer through a FIXED dictionary to the next segment's
+flags. Before mapping, `needs_escalation` checks the judgment against the
+observed trend; a doubtful answer is not mapped — it holds the current posture,
+or is handed to at most one optional second opinion whose answer is checked the
+same way. This module defines that logic; the segment loop that calls it lives
+in `governed_runner.run_governed`.
 
 Design constraints (docs/SELF-EVOLUTION.md, the sampling governor section):
 
@@ -22,8 +26,8 @@ Design constraints (docs/SELF-EVOLUTION.md, the sampling governor section):
 - Thresholds are DECLARED PROVISIONAL: a posture change needs confidence
   > 0.5, stop needs > 0.8, and below the floor the governor falls back to
   `hold` (the conservative default). Calibrated vs own labels is future work.
-- One Jev request per segment. Every request is a ledger row (the budget
-  rail lives in the driver, not here).
+- One primary request per segment, with at most one optional second opinion.
+  Both share the driver's request budget and receipts on live paths.
 - Licence-clean: this module never imports darwinian_evolver; the evolver CLI
   is invoked unmodified (mere aggregation).
 
@@ -262,7 +266,7 @@ GovernorJudge = Callable[[dict[str, Any]], PostureVerdict]
 # curve, and `converged -> explore @0.88` on a flat-at-peak population with
 # novelty dead). Instead of quietly applying either, the governor hands the
 # case to a second opinion: `needs_escalation` runs BEFORE `apply_verdict`,
-# leaves the posture unchanged, and the driver spends the extra analysis.
+# retains the current posture unless a bounded second opinion resolves it.
 # Threshold is DECLARED PROVISIONAL like the floors above.
 
 ESCALATION_TREND_EPSILON = 1e-9
@@ -332,6 +336,8 @@ def needs_escalation(
     #    the case is genuinely under-determined, not conservative-by-design.
     if confidence <= POSTURE_CHANGE_CONFIDENCE:
         return True, "below-confidence-floor"
+    if v == "stop" and confidence <= STOP_CONFIDENCE:
+        return True, "below-stop-confidence-floor"
     trend = analyze_trend(state)
     # 2. The verdict contradicts the observed trend.
     if v == "exploit" and not trend["climbing"]:
@@ -359,15 +365,69 @@ def run_segment(
     goal: str,
     current_posture: dict[str, Any],
     judge: GovernorJudge,
+    *,
+    escalation_judge: GovernorJudge | None = None,
+    record_decision: Callable[[dict[str, Any]], None] | None = None,
 ) -> dict[str, Any]:
-    """One segment step: build the state, judge, map. Returns the next
-    segment's flags (and stop when the verdict clears the stop floor). The
-    judge is injected — the shadow test stubs it; the driver passes the live
-    path behind the budget rail."""
+    """Judge and check before mapping; request at most one second opinion.
+
+    Both judges are injected and must share the caller's request budget on
+    live paths. An unavailable or still-doubtful second opinion retains the
+    current posture and records why. Exceptions propagate to the bounded
+    runner; in particular a budget refusal must stop further dispatch.
+    """
     state = build_state(results, goal, current_posture)
-    verdict = judge(state)
-    if isinstance(verdict, dict):
-        verdict = SimpleNamespace(
-            verdict=verdict.get("verdict"), confidence=verdict.get("confidence")
-        )
-    return apply_verdict(current_posture, verdict)
+    decision = {
+        "escalation_required": False,
+        "escalation_attempted": False,
+        "escalation_reason": "",
+        "resolution": "primary_error",
+    }
+
+    def as_verdict(value):
+        return SimpleNamespace(**value) if isinstance(value, dict) else value
+
+    def verdict_record(value):
+        value = as_verdict(value)
+        confidence = getattr(value, "confidence", None)
+        model = getattr(value, "model", None)
+        label = getattr(value, "verdict", None)
+        return {
+            "verdict": label if isinstance(label, str) else None,
+            "confidence": confidence
+            if type(confidence) in (int, float) and math.isfinite(confidence)
+            else None,
+            "model": model if isinstance(model, str) else None,
+        }
+
+    try:
+        verdict = judge(state)
+        decision["primary"] = verdict_record(verdict)
+        required, reason = needs_escalation(verdict, state)
+        if not required:
+            decision["resolution"] = "primary"
+            return apply_verdict(current_posture, as_verdict(verdict))
+        decision.update(escalation_required=True, escalation_reason=reason)
+        if escalation_judge is None:
+            decision["resolution"] = "unavailable"
+            return dict(current_posture)
+
+        decision.update(escalation_attempted=True, resolution="secondary_error")
+        review_state = {
+            **state,
+            "governor_review": {
+                "first_judgment": decision["primary"],
+                "escalation_reason": reason,
+            },
+        }
+        second = escalation_judge(review_state)
+        decision["secondary"] = verdict_record(second)
+        still_doubtful, reason = needs_escalation(second, state)
+        if still_doubtful:
+            decision.update(resolution="unresolved", unresolved_reason=reason)
+            return dict(current_posture)
+        decision["resolution"] = "secondary"
+        return apply_verdict(current_posture, as_verdict(second))
+    finally:
+        if record_decision is not None:
+            record_decision(decision)

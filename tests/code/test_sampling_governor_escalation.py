@@ -9,6 +9,8 @@ from evolution.code.sampling_governor import (
     analyze_trend,
     build_state,
     needs_escalation,
+    run_segment,
+    STOP_CONFIDENCE,
 )
 
 BASE_POSTURE = {"sharpness": 10, "midpoint_score": "p75"}
@@ -104,3 +106,31 @@ def test_live_dict_shape_accepted():
         {"verdict": "exploit", "confidence": 0.9},
         _state([0.6, 0.65, 0.68, 0.7, 0.74], [4] * 5),
     )[0]
+
+
+def test_stop_below_its_own_floor_requires_review():
+    assert needs_escalation(
+        _v("stop", STOP_CONFIDENCE), _state([0.95] * 5, [1] * 5)
+    ) == (True, "below-stop-confidence-floor")
+
+
+def test_second_opinion_cannot_bypass_the_trend_check_or_recurse():
+    calls = []
+    records = []
+
+    def review(state):
+        calls.append(state)
+        return _v("explore", 0.99)
+
+    result = run_segment(
+        _rows([0.60, 0.65, 0.68, 0.70, 0.74], [4] * 5),
+        "goal",
+        dict(BASE_POSTURE),
+        lambda _: _v("explore", 0.9),
+        escalation_judge=review,
+        record_decision=records.append,
+    )
+    assert result == BASE_POSTURE
+    assert len(calls) == len(records) == 1
+    assert records[0]["resolution"] == "unresolved"
+    assert records[0]["unresolved_reason"] == "explore-while-improving"

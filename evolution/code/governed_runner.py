@@ -69,6 +69,7 @@ def run_governed(
     ledger: RequestLedger,
     *,
     judge=None,
+    escalation_judge=None,
     iterations: int = 3,
     segment_iterations: int = 5,
     parents: int = 1,
@@ -171,12 +172,16 @@ def run_governed(
                 if completed >= iterations:
                     break
                 if judge is not None:
+                    audit = {}
+                    budget_exhausted = False
                     try:
                         next_posture = run_segment(
                             rows,
                             "Improve failing code cases while retaining all regression gates",
                             posture,
                             judge,
+                            escalation_judge=escalation_judge,
+                            record_decision=audit.update,
                         )
                         decision = {
                             "iteration": completed,
@@ -185,7 +190,14 @@ def run_governed(
                             "error": None,
                         }
                     except BudgetExhausted:
-                        raise
+                        next_posture = dict(posture)
+                        budget_exhausted = True
+                        decision = {
+                            "iteration": completed,
+                            "before": posture,
+                            "after": next_posture,
+                            "error": "BudgetExhausted",
+                        }
                     except Exception as cause:
                         next_posture = dict(posture)
                         decision = {
@@ -194,10 +206,13 @@ def run_governed(
                             "after": next_posture,
                             "error": type(cause).__name__,
                         }
+                    decision.update(audit)
                     decisions.append(decision)
                     write_json(
                         directory / "decisions" / f"{completed:04d}.json", decision
                     )
+                    if budget_exhausted:
+                        raise BudgetExhausted("governor request budget exhausted")
                     if next_posture.get("stop"):
                         status = "governor_stop"
                         break
